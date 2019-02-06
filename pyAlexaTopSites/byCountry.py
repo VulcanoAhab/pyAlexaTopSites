@@ -34,7 +34,7 @@ class AmazonUtils:
         return kSigning
 
 
-class Request:
+class Ranking:
     """
     """
     def __init__(self,  access_key, access_secret,
@@ -160,7 +160,7 @@ if __name__ == "__main__":
     parser.add_argument("-k", "--access_key_id")
     parser.add_argument("-s", "--secret_access_key")
     parser.add_argument("-c", "--country_code")
-    parser.add_argument("-o", "--output_file", default="alexaTopSites.csv")
+    parser.add_argument("-o", "--output_file", default="")
     parser.add_argument("-a", "--start", type=int, default=1)
     parser.add_argument("-z", "--count", type=int, default=1000)
     args = parser.parse_args()
@@ -172,13 +172,16 @@ if __name__ == "__main__":
     country_code = args.country_code
     start = args.start
     count = args.count
-    alexa=Request(access_key=access_key_id,
+    output_file=args.output_file
+    if  output_file is "":
+        output_file="alexaTopSites_"+country_code+".csv"
+    alexa=Ranking(access_key=access_key_id,
                  access_secret=secret_access_key,
                  country_code=country_code, count=count,
                  start=start)
     print("[+] Preparing request.")
     alexa.prepare_request()
-    fd=open(args.output_file, "w")
+    fd=open(output_file, "w")
     fieldnames=["url", "country_rank", "country_reach",
                 "country_pageviews","global_rank"]
     csvFile=csv.DictWriter(fd, fieldnames=fieldnames)
