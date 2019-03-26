@@ -1,3 +1,4 @@
+import csv
 import hmac
 import base64
 import hashlib
@@ -84,6 +85,8 @@ class Ranking:
     def prepare_request(self):
         """
         """
+        print("[+] Preparing request.")
+
         ## set vals
         request_parameters=urlencode(self.query)
         nowDate=datetime.utcnow()
@@ -122,6 +125,7 @@ class Ranking:
         self.headers={"x-amz-date":amzdate,
                  "Authorization":authorization_header,
                  "Host":self.host}
+
     @property
     def sites(self):
         """
@@ -132,7 +136,7 @@ class Ranking:
         xml = etree.fromstring(r.text)
         sites = self._mine_containers(xml, "//aws:Site")
         for site in sites:
-            url=self._mine_text(site, "./aws:DataUrl")
+            site_domain=self._mine_text(site, "./aws:DataUrl")
             country_data=self._mine_container(site, "./aws:Country")
             country_rank=self._mine_text(country_data, "./aws:Rank")
             country_reach=self._mine_text(country_data,
@@ -140,8 +144,8 @@ class Ranking:
             country_pageviews=self._mine_text(country_data,
                                               "./aws:PageViews/aws:PerUser")
             global_rank=self._mine_text(site, "./aws:Global/aws:Rank")
-            self._alexa_sites[url]={
-                "url":url,
+            self._alexa_sites[site_domain]={
+                "site":site_domain,
                 "country_rank":country_rank,
                 "country_reach":country_reach,
                 "country_pageviews":country_pageviews,
@@ -149,10 +153,29 @@ class Ranking:
             }
         return self._alexa_sites
 
+    def save_site(self, output_file):
+        """
+        """
+        fieldnames=[
+            "site", "country_rank", "country_reach",
+            "country_pageviews","global_rank"
+        ]
+        suffix="_{:%d-%m-%Y}.csv".format(datetime.utcnow())
+        output_file=output_file.strip(".csv")+suffix
+
+        fd=open(output_file, "w")
+        csvFile=csv.DictWriter(fd, fieldnames=fieldnames)
+        csvFile.writeheader()
+        print("[+] Making request. Country:{}".format(self.country_code))
+        for domain, row in alexa.sites.items():csvFile.writerow(row)
+        fd.close()
+        print("[+] Done saving file: {}".format(args.output_file))
+
+
 
 if __name__ == "__main__":
-    import csv
     import argparse
+
     parser = argparse.ArgumentParser(description="Get AlexaTopSites"\
                                                  "for a specific country."\
                                                  "Command line with CSV"\
@@ -160,10 +183,11 @@ if __name__ == "__main__":
     parser.add_argument("-k", "--access_key_id")
     parser.add_argument("-s", "--secret_access_key")
     parser.add_argument("-c", "--country_code")
-    parser.add_argument("-o", "--output_file", default="")
+    parser.add_argument("-o", "--output_file", default="alexaTopSites")
     parser.add_argument("-a", "--start", type=int, default=1)
     parser.add_argument("-z", "--count", type=int, default=1000)
     args = parser.parse_args()
+
     if not args.count:
         parser.print_help()
         exit(2)
@@ -173,20 +197,10 @@ if __name__ == "__main__":
     start = args.start
     count = args.count
     output_file=args.output_file
-    if  output_file is "":
-        output_file="alexaTopSites_"+country_code+".csv"
+
     alexa=Ranking(access_key=access_key_id,
                  access_secret=secret_access_key,
                  country_code=country_code, count=count,
                  start=start)
-    print("[+] Preparing request.")
     alexa.prepare_request()
-    fd=open(output_file, "w")
-    fieldnames=["url", "country_rank", "country_reach",
-                "country_pageviews","global_rank"]
-    csvFile=csv.DictWriter(fd, fieldnames=fieldnames)
-    csvFile.writeheader()
-    print("[+] Making request")
-    for key, row in alexa.sites.items():csvFile.writerow(row)
-    fd.close()
-    print("[+] Done saving file: {}".format(args.output_file))
+    alex.save_site(args.output_file)
