@@ -7,4 +7,7 @@ setup(
     packages=["pyAlexaTopSites"],
     url="https://github.com/VulcanoAhab/pyAlexaTopSites.git",
     description="Alexa TopSites by Country",
+    install_requires=[
+          "requests",
+      ],
 )
