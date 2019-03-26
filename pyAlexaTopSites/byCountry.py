@@ -161,15 +161,14 @@ class Ranking:
             "country_pageviews","global_rank"
         ]
         suffix="_{:%d-%m-%Y}.csv".format(datetime.utcnow())
-        output_file=output_file.strip(".csv")+suffix
-
-        fd=open(output_file, "w")
-        csvFile=csv.DictWriter(fd, fieldnames=fieldnames)
-        csvFile.writeheader()
-        print("[+] Making request. Country:{}".format(self.country_code))
-        for domain, row in alexa.sites.items():csvFile.writerow(row)
-        fd.close()
-        print("[+] Done saving file: {}".format(args.output_file))
+        output_file=output_file.replace(".csv", "")+suffix
+        #fetch and persist
+        with open(output_file, "w") as fd:
+            csvFile=csv.DictWriter(fd, fieldnames=fieldnames)
+            csvFile.writeheader()
+            print("[+] Making request. Country:{}".format(self.country_code))
+            for domain, row in self.sites.items():csvFile.writerow(row)
+        print("[+] Done saving file: {}".format(output_file))
 
 
 

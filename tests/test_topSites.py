@@ -1,6 +1,45 @@
 import os
 import glob
 import unittest
+from pyAlexaTopSites.byCountry import Ranking
+
+
+class TestTopSites(unittest.TestCase):
+    """
+    """
+
+    def setUp(self):
+        """
+        """
+        self._start=0
+        self._code="br"
+        self._count=1000
+        self._output_file="test_{}_top-sites".format(self._code)
+        self._alexa=Ranking(
+            access_key=os.getenv("access_key_id"),
+            access_secret=os.getenv("secret_access_key"),
+            country_code=self._code,
+            count=self._count,
+            start=self._start
+        )
+
+    def test_save_site(self):
+        """
+        """
+        self._alexa.prepare_request()
+        self._alexa.save_site(self._output_file)
+        files_list=glob.glob(self._output_file+"*")
+        self.assertTrue(any(files_list))
+        os.remove(files_list[0])
+
+
+if __name__ == "__main__":
+    unittest.main()
+
+
+
+
+### ALEXA_COUNTRIES_CODES
 
 countries_and_codes=[
     ("Andorra","AD"),
@@ -136,32 +175,3 @@ countries_and_codes=[
     ("Yemen","YE"),
     ("SouthAfrica","ZA"),
 ]
-
-
-class TestTopSites(unittest.TestCase):
-    """
-    """
-
-    def setUp(self):
-        """
-        """
-        self._start=0
-        self._code="BR"
-        self._count=1000
-        self._output_file="test_{}_top-sites".format(self._code)
-        self._alexa=Ranking(
-            access_key=os.getenv("access_key_id"),
-            access_secret=os.getenv("secret_access_key"),
-            country_code=self._code,
-            count=self._count,
-            start=self._start
-        )
-
-    def test_save_site(self):
-        """
-        """
-        self._alexa.prepare_request()
-        self._alex.save_site(self._output_file)
-        files_list=glob.glob(self._output_file+"*")
-        self.assertTrue(any(files_list))
-        os.remove(files_list[0])
